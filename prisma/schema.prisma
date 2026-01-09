@@ -1,0 +1,97 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Player {
+  id              String         @id @default(cuid())
+  name            String
+  totalScore      Int            @default(0)
+  isOnBench       Boolean        @default(false)
+  createdAt       DateTime       @default(now())
+
+  courtAssignments CourtAssignment[]
+  gamePlayers      GamePlayer[]
+}
+
+model Court {
+  id              String         @id @default(cuid())
+  name            String         @unique
+  order           Int            @unique
+  createdAt       DateTime       @default(now())
+
+  courtSessions   CourtSession[]
+}
+
+model Session {
+  id              String         @id @default(cuid())
+  sessionNumber   Int            @unique
+  status          String         @default("pending") // pending, active, completed
+  createdAt       DateTime       @default(now())
+
+  courtSessions   CourtSession[]
+}
+
+model CourtSession {
+  id              String         @id @default(cuid())
+  sessionId       String
+  courtId         String
+  createdAt       DateTime       @default(now())
+
+  session         Session        @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  court           Court          @relation(fields: [courtId], references: [id], onDelete: Cascade)
+
+  assignments     CourtAssignment[]
+  games           Game[]
+
+  @@unique([sessionId, courtId])
+}
+
+model CourtAssignment {
+  id              String         @id @default(cuid())
+  courtSessionId  String
+  playerId        String
+  createdAt       DateTime       @default(now())
+
+  courtSession    CourtSession   @relation(fields: [courtSessionId], references: [id], onDelete: Cascade)
+  player          Player         @relation(fields: [playerId], references: [id], onDelete: Cascade)
+
+  @@unique([courtSessionId, playerId])
+}
+
+model Game {
+  id              String         @id @default(cuid())
+  courtSessionId  String
+  gameNumber      Int
+  status          String         @default("pending") // pending, active, completed
+  createdAt       DateTime       @default(now())
+
+  courtSession    CourtSession   @relation(fields: [courtSessionId], references: [id], onDelete: Cascade)
+  gamePlayers     GamePlayer[]
+
+  @@unique([courtSessionId, gameNumber])
+}
+
+model GamePlayer {
+  id              String         @id @default(cuid())
+  gameId          String
+  playerId        String
+  team            Int            // 1 or 2
+  score           Int            @default(0)
+  createdAt       DateTime       @default(now())
+
+  game            Game           @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  player          Player         @relation(fields: [playerId], references: [id], onDelete: Cascade)
+
+  @@unique([gameId, playerId])
+}
