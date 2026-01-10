@@ -3,11 +3,14 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
+import Navigation from '../components/Navigation';
 
 interface Player {
   id: string;
   name: string;
   totalScore: number;
+  pointsFor: number;
+  pointsAgainst: number;
 }
 
 interface CourtSession {
@@ -69,8 +72,10 @@ export default function StandingsPage() {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 p-4 md:p-8">
-      <div className="mx-auto max-w-7xl">
+    <>
+      <Navigation />
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 p-4 pb-20 md:p-8 md:pl-24 md:pb-8">
+        <div className="mx-auto max-w-7xl">
         {/* Header */}
         <div className="mb-8 flex items-center justify-between">
           <div>
@@ -94,7 +99,7 @@ export default function StandingsPage() {
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
             <div className="flex items-center gap-3">
               <div className="h-8 w-8 rounded-lg bg-green-500"></div>
-              <span className="font-semibold text-gray-700">Promotion Zone (Top 2)</span>
+              <span className="font-semibold text-gray-700">Promotion Zone (Top 3)</span>
             </div>
             <div className="flex items-center gap-3">
               <div className="h-8 w-8 rounded-lg bg-gray-200"></div>
@@ -102,7 +107,7 @@ export default function StandingsPage() {
             </div>
             <div className="flex items-center gap-3">
               <div className="h-8 w-8 rounded-lg bg-red-500"></div>
-              <span className="font-semibold text-gray-700">Relegation Zone (Bottom 2)</span>
+              <span className="font-semibold text-gray-700">Relegation Zone (Bottom 3)</span>
             </div>
           </div>
         </div>
@@ -110,10 +115,13 @@ export default function StandingsPage() {
         {/* Courts */}
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
           {sortedCourtSessions.map((courtSession) => {
-            // Sort players by score
-            const sortedPlayers = [...courtSession.assignments].sort(
-              (a, b) => b.player.totalScore - a.player.totalScore
-            );
+            // Sort players by net points
+            const sortedPlayers = [...courtSession.assignments]
+              .map((assignment) => ({
+                ...assignment,
+                netPoints: assignment.player.pointsFor - assignment.player.pointsAgainst,
+              }))
+              .sort((a, b) => b.netPoints - a.netPoints);
 
             return (
               <motion.div
@@ -137,17 +145,17 @@ export default function StandingsPage() {
                 {/* Special notes for top and bottom courts */}
                 {courtSession.court.order === 1 && (
                   <div className="mb-4 rounded-lg bg-yellow-50 p-3 text-center text-sm font-semibold text-yellow-800">
-                    Top Court - Bottom 2 relegated
+                    Top Court - Bottom 3 relegated
                   </div>
                 )}
                 {courtSession.court.order === 3 && (
                   <div className="mb-4 rounded-lg bg-green-50 p-3 text-center text-sm font-semibold text-green-800">
-                    Bottom Court - Top 2 promoted
+                    Bottom Court - Top 3 promoted | Bottom 3 in relegation zone
                   </div>
                 )}
                 {courtSession.court.order === 2 && (
                   <div className="mb-4 rounded-lg bg-purple-50 p-3 text-center text-sm font-semibold text-purple-800">
-                    Top 2 ↑ promoted | Bottom 2 ↓ relegated
+                    Top 3 ↑ promoted | Bottom 3 ↓ relegated
                   </div>
                 )}
 
@@ -158,8 +166,8 @@ export default function StandingsPage() {
                     let textColor = 'text-gray-800';
                     let badge = null;
 
-                    // Promotion zone (top 2) - for Challenger (2) and Development (3) courts
-                    if (idx < 2 && courtSession.court.order > 1) {
+                    // Promotion zone (top 3) - for Challenger (2) and Development (3) courts
+                    if (idx < 3 && courtSession.court.order > 1) {
                       bgColor = 'bg-green-50';
                       borderColor = 'border-green-400';
                       textColor = 'text-green-900';
@@ -169,8 +177,8 @@ export default function StandingsPage() {
                         </span>
                       );
                     }
-                    // Relegation zone (bottom 2) - for Championship (1) and Challenger (2) courts
-                    else if (idx >= sortedPlayers.length - 2 && courtSession.court.order < 3) {
+                    // Relegation zone (bottom 3) - for all courts (visual indicator)
+                    else if (idx >= sortedPlayers.length - 3) {
                       bgColor = 'bg-red-50';
                       borderColor = 'border-red-400';
                       textColor = 'text-red-900';
@@ -189,7 +197,7 @@ export default function StandingsPage() {
                         transition={{ delay: idx * 0.05 }}
                         className={`flex items-center justify-between rounded-lg border-2 ${borderColor} ${bgColor} p-4`}
                       >
-                        <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-4 flex-1">
                           <div
                             className={`flex h-10 w-10 items-center justify-center rounded-full ${
                               idx === 0
@@ -199,16 +207,18 @@ export default function StandingsPage() {
                                 : idx === 2
                                 ? 'bg-orange-500 text-white'
                                 : 'bg-gray-200 text-gray-700'
-                            } text-lg font-bold`}
+                            } text-lg font-bold flex-shrink-0`}
                           >
                             {idx + 1}
                           </div>
-                          <div>
+                          <div className="flex-1">
                             <div className={`text-lg font-bold ${textColor}`}>
                               {assignment.player.name}
                             </div>
-                            <div className="text-sm text-gray-600">
-                              {assignment.player.totalScore} points
+                            <div className="text-sm text-gray-600 flex gap-3">
+                              <span>For: {assignment.player.pointsFor}</span>
+                              <span>Agn: {assignment.player.pointsAgainst}</span>
+                              <span className="font-bold">Net: {assignment.netPoints}</span>
                             </div>
                           </div>
                         </div>
@@ -221,7 +231,8 @@ export default function StandingsPage() {
             );
           })}
         </div>
+        </div>
       </div>
-    </div>
+    </>
   );
 }

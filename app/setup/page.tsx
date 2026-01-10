@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
+import Navigation from '../components/Navigation';
 
 interface Player {
   id: string;
@@ -167,7 +168,7 @@ export default function SetupPage() {
   const isValidSetup = () => {
     for (const court of courts) {
       const playerCount = assignments[court.id]?.length || 0;
-      if (playerCount !== 8 && playerCount !== 10) {
+      if (playerCount !== 8 && playerCount !== 10 && playerCount !== 12) {
         return false;
       }
     }
@@ -177,28 +178,33 @@ export default function SetupPage() {
   const getValidationMessage = () => {
     const invalidCourts = courts.filter((court) => {
       const count = assignments[court.id]?.length || 0;
-      return count !== 8 && count !== 10;
+      return count !== 8 && count !== 10 && count !== 12;
     });
 
     if (invalidCourts.length === 0) return '';
 
     return invalidCourts.map((court) => {
       const count = assignments[court.id]?.length || 0;
-      return `${court.name}: ${count} players (needs 8 or 10)`;
+      return `${court.name}: ${count} players (needs 8, 10, or 12)`;
     }).join(', ');
   };
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
-        <div className="text-2xl font-semibold text-purple-600">Loading...</div>
-      </div>
+      <>
+        <Navigation />
+        <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 md:pl-24">
+          <div className="text-2xl font-semibold text-purple-600">Loading...</div>
+        </div>
+      </>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 p-8">
-      <div className="mx-auto max-w-7xl">
+    <>
+      <Navigation />
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 p-8 pb-20 md:pl-24 md:pb-8">
+        <div className="mx-auto max-w-7xl">
         <h1 className="mb-8 text-4xl font-bold text-center bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
           Setup Tournament - Assign Players to Courts
         </h1>
@@ -318,7 +324,8 @@ export default function SetupPage() {
             </p>
           )}
         </div>
+        </div>
       </div>
-    </div>
+    </>
   );
 }

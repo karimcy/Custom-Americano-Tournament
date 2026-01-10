@@ -7,6 +7,8 @@ interface Player {
   id: string;
   name: string;
   totalScore: number;
+  pointsFor: number;
+  pointsAgainst: number;
 }
 
 interface GamePlayer {
@@ -136,28 +138,44 @@ export default function DisplayPage() {
                 {/* Court Standings FIRST */}
                 <div className="mb-4">
                   <h3 className="mb-2 text-lg font-bold text-white">Standings</h3>
-                  <div className="space-y-1">
-                    {courtSession.assignments
-                      .sort((a, b) => b.player.totalScore - a.player.totalScore)
-                      .map((assignment, idx) => (
-                        <div
-                          key={assignment.player.id}
-                          className={`flex items-center justify-between rounded-lg p-2 ${
-                            idx < 2 && courtSession.court.order > 1
-                              ? 'bg-green-500/30'
-                              : idx >= courtSession.assignments.length - 2 && courtSession.court.order < 3
-                              ? 'bg-red-500/30'
-                              : 'bg-white/10'
-                          }`}
-                        >
-                          <span className="font-semibold text-white text-sm">
-                            {idx + 1}. {assignment.player.name}
-                          </span>
-                          <span className="text-lg font-bold text-white">
-                            {assignment.player.totalScore}
-                          </span>
-                        </div>
-                      ))}
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-white text-xs">
+                      <thead>
+                        <tr className="border-b border-white/20">
+                          <th className="text-left p-1 font-semibold">#</th>
+                          <th className="text-left p-1 font-semibold">Player</th>
+                          <th className="text-center p-1 font-semibold">For</th>
+                          <th className="text-center p-1 font-semibold">Agn</th>
+                          <th className="text-center p-1 font-semibold">Net</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {courtSession.assignments
+                          .map((assignment) => ({
+                            ...assignment,
+                            netPoints: assignment.player.pointsFor - assignment.player.pointsAgainst,
+                          }))
+                          .sort((a, b) => b.netPoints - a.netPoints)
+                          .map((assignment, idx) => (
+                            <tr
+                              key={assignment.player.id}
+                              className={`${
+                                idx < 3 && courtSession.court.order > 1
+                                  ? 'bg-green-500/30'
+                                  : idx >= courtSession.assignments.length - 3
+                                  ? 'bg-red-500/30'
+                                  : 'bg-white/5'
+                              }`}
+                            >
+                              <td className="p-1 font-semibold">{idx + 1}</td>
+                              <td className="p-1 truncate">{assignment.player.name}</td>
+                              <td className="p-1 text-center">{assignment.player.pointsFor}</td>
+                              <td className="p-1 text-center">{assignment.player.pointsAgainst}</td>
+                              <td className="p-1 text-center font-bold">{assignment.netPoints}</td>
+                            </tr>
+                          ))}
+                      </tbody>
+                    </table>
                   </div>
                 </div>
 

@@ -34,10 +34,10 @@ function detectGender(name: string): 'M' | 'F' | 'U' {
   return 'M'; // Default to male if not identified as female
 }
 
-// Balanced Americano for 10 players - each player plays exactly 2 games
+// Balanced Americano for 8, 10, or 12 players - each player plays exactly 2 games
 export function generateOptimalAmericanoPairings(players: Player[]): Game[] {
-  if (players.length !== 10) {
-    throw new Error('Optimal Americano requires exactly 10 players');
+  if (players.length !== 8 && players.length !== 10 && players.length !== 12) {
+    throw new Error('Optimal Americano requires exactly 8, 10, or 12 players');
   }
 
   // Detect genders
@@ -55,27 +55,42 @@ export function generateOptimalAmericanoPairings(players: Player[]): Game[] {
     }
   });
 
-  // Standard balanced Americano rotation for 10 players
+  // Standard balanced Americano rotation
   // Each player plays exactly 2 games
   let pairings: { team1: [number, number]; team2: [number, number] }[];
+  const numPlayers = players.length;
 
-  // If we have females, try to distribute them across teams
-  if (femaleIndices.length > 0 && femaleIndices.length < 10) {
-    // Try to create mixed teams
-    pairings = createMixedGenderPairings(players.length, femaleIndices, maleIndices);
-  } else {
-    // Standard rotation (all same gender or can't balance)
+  if (numPlayers === 8) {
+    // 8 players: 4 games, each plays 2
     pairings = [
-      { team1: [0, 1], team2: [2, 3] },  // Game 1: Players 0,1,2,3 play
-      { team1: [4, 5], team2: [6, 7] },  // Game 2: Players 4,5,6,7 play
-      { team1: [8, 9], team2: [0, 2] },  // Game 3: Players 8,9,0,2 play (0,2 2nd game)
-      { team1: [1, 3], team2: [4, 6] },  // Game 4: Players 1,3,4,6 play (1,3,4,6 2nd game)
-      { team1: [5, 7], team2: [8, 9] },  // Game 5: Players 5,7,8,9 play (5,7,8,9 2nd game)
+      { team1: [0, 1], team2: [2, 3] },  // Game 1
+      { team1: [4, 5], team2: [6, 7] },  // Game 2
+      { team1: [0, 2], team2: [4, 6] },  // Game 3 (2nd game)
+      { team1: [1, 3], team2: [5, 7] },  // Game 4 (2nd game)
+    ];
+  } else if (numPlayers === 10) {
+    // 10 players: 5 games, each plays 2
+    pairings = [
+      { team1: [0, 1], team2: [2, 3] },  // Game 1
+      { team1: [4, 5], team2: [6, 7] },  // Game 2
+      { team1: [8, 9], team2: [0, 2] },  // Game 3 (0,2 2nd game)
+      { team1: [1, 3], team2: [4, 6] },  // Game 4 (1,3,4,6 2nd game)
+      { team1: [5, 7], team2: [8, 9] },  // Game 5 (5,7,8,9 2nd game)
+    ];
+  } else {
+    // 12 players: 6 games, each plays 2
+    pairings = [
+      { team1: [0, 1], team2: [2, 3] },   // Game 1
+      { team1: [4, 5], team2: [6, 7] },   // Game 2
+      { team1: [8, 9], team2: [10, 11] }, // Game 3
+      { team1: [0, 2], team2: [4, 6] },   // Game 4 (2nd game)
+      { team1: [1, 3], team2: [5, 7] },   // Game 5 (2nd game)
+      { team1: [8, 10], team2: [9, 11] }, // Game 6 (2nd game)
     ];
   }
 
   // Verify each player plays exactly 2 games
-  const gameCount = new Array(10).fill(0);
+  const gameCount = new Array(numPlayers).fill(0);
   pairings.forEach(pairing => {
     gameCount[pairing.team1[0]]++;
     gameCount[pairing.team1[1]]++;
@@ -84,7 +99,7 @@ export function generateOptimalAmericanoPairings(players: Player[]): Game[] {
   });
 
   // Log verification
-  console.log('Game distribution verification:');
+  console.log(`Game distribution verification for ${numPlayers} players:`);
   gameCount.forEach((count, idx) => {
     console.log(`Player ${idx} (${players[idx]?.name}): ${count} games`);
   });

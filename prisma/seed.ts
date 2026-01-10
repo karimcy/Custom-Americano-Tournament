@@ -15,7 +15,7 @@ const PLAYERS = [
   'Marios Savva',
   'Dimi',
   'Steve Reynolds',
-  'Lisa Groeger',
+  'Kinan',
   'Andrey Sesyuk',
   'Sonya Loshak',
   'Andreas Ch',
@@ -55,8 +55,8 @@ const COURT_ASSIGNMENTS = {
     'Alex Geddes',
     'Josh Geddes',
     'Steve Reynolds',
+    'Karim A.',
     'Hannes',
-    'Dean',
   ],
   Challenger: [
     'Karim',
@@ -64,22 +64,24 @@ const COURT_ASSIGNMENTS = {
     'Andrey Sesyuk',
     'Nico',
     'Saif',
+    'Alex',
     'Dima Zubkov',
-    'Matvey',
     'Wayss',
     'Jordan Geddes',
-    'Maddy',
+    'Pandelis',
   ],
   Development: [
     'Richard',
+    'Dean',
+    'Oliver Thirlwell Georgallis',
     'Natalie',
-    'Lisa Groeger',
     'Sonya Loshak',
-    'Karim A.',
-    'Eka',
     'Iliana Thirlwell Georgallis',
+    'Matvey',
+    'Eka',
     'Sophie Efstathiou',
     'Stephan',
+    'Maddy',
     'Marianthi',
   ],
 };
@@ -154,7 +156,7 @@ async function main() {
     console.log(`Generating games for ${courtName}...`);
     const courtPlayers = playerNames.map((name) => players[name]).filter(Boolean);
 
-    if (courtPlayers.length === 10 || courtPlayers.length === 8) {
+    if (courtPlayers.length === 10 || courtPlayers.length === 8 || courtPlayers.length === 12) {
       // Balanced Americano - each player plays exactly 2 games
       let pairings;
       let numPlayers = courtPlayers.length;
@@ -168,13 +170,23 @@ async function main() {
           { team1: [1, 3], team2: [4, 6] },  // Game 4: Players 1,3,4,6 play (1,3,4,6 2nd game)
           { team1: [5, 7], team2: [8, 9] },  // Game 5: Players 5,7,8,9 play (5,7,8,9 2nd game)
         ];
-      } else {
+      } else if (courtPlayers.length === 8) {
         // 8 players: 4 games × 4 players = 16 player-slots / 8 players = 2 games each
         pairings = [
           { team1: [0, 1], team2: [2, 3] },  // Game 1: Players 0,1,2,3 play
           { team1: [4, 5], team2: [6, 7] },  // Game 2: Players 4,5,6,7 play
           { team1: [0, 2], team2: [4, 6] },  // Game 3: Players 0,2,4,6 play (2nd game)
           { team1: [1, 3], team2: [5, 7] },  // Game 4: Players 1,3,5,7 play (2nd game)
+        ];
+      } else {
+        // 12 players: 6 games × 4 players = 24 player-slots / 12 players = 2 games each
+        pairings = [
+          { team1: [0, 1], team2: [2, 3] },   // Game 1: Players 0,1,2,3 play
+          { team1: [4, 5], team2: [6, 7] },   // Game 2: Players 4,5,6,7 play
+          { team1: [8, 9], team2: [10, 11] }, // Game 3: Players 8,9,10,11 play
+          { team1: [0, 2], team2: [4, 6] },   // Game 4: Players 0,2,4,6 play (2nd game)
+          { team1: [1, 3], team2: [5, 7] },   // Game 5: Players 1,3,5,7 play (2nd game)
+          { team1: [8, 10], team2: [9, 11] }, // Game 6: Players 8,9,10,11 play (2nd game)
         ];
       }
 

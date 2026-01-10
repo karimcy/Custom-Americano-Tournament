@@ -54,18 +54,24 @@ export async function POST(
       orderBy: { order: 'asc' },
     });
 
-    // For each court, get top 2 and bottom 2 players by total score
+    // For each court, get top 3 and bottom 3 players by net points
     for (let i = 0; i < session.courtSessions.length; i++) {
       const courtSession = session.courtSessions[i];
       const court = courtSession.court;
 
-      // Sort players by total score
+      // Sort players by net points (pointsFor - pointsAgainst), then by totalScore, then by name
       const sortedPlayers = [...courtSession.assignments]
-        .sort((a, b) => b.player.totalScore - a.player.totalScore);
+        .sort((a, b) => {
+          const aNet = a.player.pointsFor - a.player.pointsAgainst;
+          const bNet = b.player.pointsFor - b.player.pointsAgainst;
+          if (bNet !== aNet) return bNet - aNet;
+          if (b.player.totalScore !== a.player.totalScore) return b.player.totalScore - a.player.totalScore;
+          return a.player.name.localeCompare(b.player.name);
+        });
 
-      const top2 = sortedPlayers.slice(0, 2);
-      const middle = sortedPlayers.slice(2, -2);
-      const bottom2 = sortedPlayers.slice(-2);
+      const top3 = sortedPlayers.slice(0, 3);
+      const middle = sortedPlayers.slice(3, -3);
+      const bottom3 = sortedPlayers.slice(-3);
 
       // Initialize court assignments if not exists
       if (!newAssignments[court.id]) {
@@ -74,47 +80,47 @@ export async function POST(
 
       // Handle promotions and relegations
       if (court.order === 1) {
-        // Championship court: top 2 stay, bottom 2 go down
-        newAssignments[court.id].push(...top2.map((a) => a.player.id));
+        // Championship court: top players stay, bottom 3 go down
+        newAssignments[court.id].push(...top3.map((a) => a.player.id));
         newAssignments[court.id].push(...middle.map((a) => a.player.id));
 
-        // Bottom 2 to next court
+        // Bottom 3 to next court
         if (courts[i + 1]) {
           if (!newAssignments[courts[i + 1].id]) {
             newAssignments[courts[i + 1].id] = [];
           }
-          newAssignments[courts[i + 1].id].push(...bottom2.map((a) => a.player.id));
+          newAssignments[courts[i + 1].id].push(...bottom3.map((a) => a.player.id));
         }
       } else if (court.order === courts.length) {
-        // Development court: bottom 2 stay, top 2 go up
+        // Development court: bottom players stay, top 3 go up
         newAssignments[court.id].push(...middle.map((a) => a.player.id));
-        newAssignments[court.id].push(...bottom2.map((a) => a.player.id));
+        newAssignments[court.id].push(...bottom3.map((a) => a.player.id));
 
-        // Top 2 to previous court
+        // Top 3 to previous court
         if (courts[i - 1]) {
           if (!newAssignments[courts[i - 1].id]) {
             newAssignments[courts[i - 1].id] = [];
           }
-          newAssignments[courts[i - 1].id].push(...top2.map((a) => a.player.id));
+          newAssignments[courts[i - 1].id].push(...top3.map((a) => a.player.id));
         }
       } else {
-        // Middle court: top 2 up, bottom 2 down, middle stay
+        // Middle court: top 3 up, bottom 3 down, middle stay
         newAssignments[court.id].push(...middle.map((a) => a.player.id));
 
-        // Top 2 to previous court
+        // Top 3 to previous court
         if (courts[i - 1]) {
           if (!newAssignments[courts[i - 1].id]) {
             newAssignments[courts[i - 1].id] = [];
           }
-          newAssignments[courts[i - 1].id].push(...top2.map((a) => a.player.id));
+          newAssignments[courts[i - 1].id].push(...top3.map((a) => a.player.id));
         }
 
-        // Bottom 2 to next court
+        // Bottom 3 to next court
         if (courts[i + 1]) {
           if (!newAssignments[courts[i + 1].id]) {
             newAssignments[courts[i + 1].id] = [];
           }
-          newAssignments[courts[i + 1].id].push(...bottom2.map((a) => a.player.id));
+          newAssignments[courts[i + 1].id].push(...bottom3.map((a) => a.player.id));
         }
       }
     }
@@ -141,8 +147,8 @@ export async function POST(
         });
       }
 
-      // Generate games if we have 10 players
-      if (playerIds.length === 10) {
+      // Generate games if we have 8, 10, or 12 players
+      if (playerIds.length === 8 || playerIds.length === 10 || playerIds.length === 12) {
         const players = await prisma.player.findMany({
           where: { id: { in: playerIds } },
         });
@@ -185,6 +191,12 @@ export async function POST(
         }
       }
     }
+
+    // Activate next session
+    await prisma.session.update({
+      where: { id: nextSession.id },
+      data: { status: 'active' },
+    });
 
     return NextResponse.json({ success: true, nextSessionId: nextSession.id });
   } catch (error) {

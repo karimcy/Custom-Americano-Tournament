@@ -8,30 +8,72 @@ export async function POST(
   try {
     const { gameId } = await params;
     const body = await request.json();
-    const { scores } = body; // { playerId: score }
+    const { team1Score, team2Score } = body;
 
-    // Update scores for each player
-    for (const [playerId, score] of Object.entries(scores)) {
+    // Get all game players to determine teams
+    const gamePlayers = await prisma.gamePlayer.findMany({
+      where: { gameId },
+      include: { player: true },
+    });
+
+    const team1Players = gamePlayers.filter((gp) => gp.team === 1);
+    const team2Players = gamePlayers.filter((gp) => gp.team === 2);
+
+    // Divide team score equally among players
+    const team1ScorePerPlayer = team1Score / team1Players.length;
+    const team2ScorePerPlayer = team2Score / team2Players.length;
+
+    // Update scores for team 1 players
+    for (const gp of team1Players) {
       await prisma.gamePlayer.updateMany({
         where: {
           gameId,
-          playerId,
+          playerId: gp.playerId,
         },
         data: {
-          score: Number(score),
+          score: team1ScorePerPlayer,
         },
       });
 
-      // Update player's total score
       const player = await prisma.player.findUnique({
-        where: { id: playerId },
+        where: { id: gp.playerId },
       });
 
       if (player) {
         await prisma.player.update({
-          where: { id: playerId },
+          where: { id: gp.playerId },
           data: {
-            totalScore: player.totalScore + Number(score),
+            totalScore: player.totalScore + team1ScorePerPlayer,
+            pointsFor: player.pointsFor + team1ScorePerPlayer,
+            pointsAgainst: player.pointsAgainst + team2Score,
+          },
+        });
+      }
+    }
+
+    // Update scores for team 2 players
+    for (const gp of team2Players) {
+      await prisma.gamePlayer.updateMany({
+        where: {
+          gameId,
+          playerId: gp.playerId,
+        },
+        data: {
+          score: team2ScorePerPlayer,
+        },
+      });
+
+      const player = await prisma.player.findUnique({
+        where: { id: gp.playerId },
+      });
+
+      if (player) {
+        await prisma.player.update({
+          where: { id: gp.playerId },
+          data: {
+            totalScore: player.totalScore + team2ScorePerPlayer,
+            pointsFor: player.pointsFor + team2ScorePerPlayer,
+            pointsAgainst: player.pointsAgainst + team1Score,
           },
         });
       }

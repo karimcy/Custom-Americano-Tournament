@@ -17,6 +17,8 @@ model Player {
   id              String         @id @default(cuid())
   name            String
   totalScore      Int            @default(0)
+  pointsFor       Int            @default(0)
+  pointsAgainst   Int            @default(0)
   isOnBench       Boolean        @default(false)
   createdAt       DateTime       @default(now())
 
