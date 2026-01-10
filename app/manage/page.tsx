@@ -218,7 +218,7 @@ export default function ManagePage() {
               Padel Tournament Manager
             </h1>
             <p className="text-xl text-gray-700">
-              Session {currentSession.sessionNumber} of 3 - Americano Format
+              Session {currentSession.sessionNumber} - Americano Format
             </p>
           </div>
           <div className="flex gap-3">
@@ -277,7 +277,12 @@ export default function ManagePage() {
                     }`}
                   >
                     <div className="text-2xl font-bold">{index + 1}</div>
-                    <div className="text-sm font-semibold">{player.name}</div>
+                    <div className="text-sm font-semibold flex items-center justify-center gap-1">
+                      {player.name}
+                      {index === 0 && (
+                        <span className="text-yellow-300 text-lg" title="Overall Leader">👑</span>
+                      )}
+                    </div>
                     <div className="text-3xl font-bold">{player.totalScore}</div>
                   </motion.div>
                 ))}
@@ -445,7 +450,12 @@ export default function ManagePage() {
                         }`}
                       >
                         <div className="text-xl font-bold">{idx + 1}</div>
-                        <div className="text-sm font-semibold">{assignment.player.name}</div>
+                        <div className="text-sm font-semibold flex items-center justify-center gap-1">
+                          {assignment.player.name}
+                          {idx === 0 && courtSession.court.order === 1 && (
+                            <span className="text-yellow-500" title="Championship Leader">👑</span>
+                          )}
+                        </div>
                         <div className="text-2xl font-bold">{assignment.player.totalScore}</div>
                       </div>
                     ))}

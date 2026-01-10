@@ -1,181 +1,374 @@
-# Padel Tournament Manager
+# 🎾 Padel Tournament Manager
 
-A beautiful, modern web application for managing Americano-style padel tournaments with automatic player pairing, scoring, and promotion/relegation between courts.
+A comprehensive web application for managing Americano-format padel tournaments with automatic promotion/relegation, real-time scoring, and multi-device support.
 
-## Features
+![Next.js](https://img.shields.io/badge/Next.js-16-black?logo=next.js)
+![React](https://img.shields.io/badge/React-19-blue?logo=react)
+![TypeScript](https://img.shields.io/badge/TypeScript-5-blue?logo=typescript)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-14-blue?logo=postgresql)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind-4-38bdf8?logo=tailwind-css)
 
-- **Drag & Drop Court Assignment**: Easily assign 32 players to 3 courts with intuitive drag-and-drop interface
-- **Automatic Americano Pairing**: Generates optimal pairings ensuring players partner with different people each game
-- **Live Display View**: Beautiful TV-optimized view showing leaderboard, courts, and live scores
-- **Mobile Score Entry**: Simple, mobile-optimized interface for entering scores from any device
-- **Automatic Promotion/Relegation**: Top 2 players from each court move up, bottom 2 move down after each session
-- **Real-time Updates**: Scores update automatically across all devices
-- **Persistent Storage**: All data saved to PostgreSQL database
+## ✨ Features
 
-## Tournament Format
+### 🏆 Tournament Management
+- **3-Court System**: Championship, Challenger, and Development courts
+- **Flexible Player Counts**: Supports 8, 10, or 12 players per court
+- **Americano Format**: Fair rotation ensuring each player plays exactly 2 games per session
+- **Automatic Promotion/Relegation**: Top 3 players promoted, bottom 3 relegated after each session
+- **Net Points Ranking**: Rankings based on Points For - Points Against (with tiebreakers)
 
-- **3 Courts**: Championship, Challenger, and Development
-- **10 Players per Court**: 2 players on bench
-- **3 Sessions**: Each session is 30 minutes
-- **5 Games per Session**: Each game played to 7 points
-- **Individual Scoring**: Your score from each game accumulates to your total
-- **Example**: Win 7-3 means you get 7 points, opponents each get 3 points
+### 📊 Real-Time Scoring
+- **Team-Based Score Entry**: One input per team for faster data entry
+- **Live Updates**: Auto-refresh every 5 seconds across all devices
+- **Points Tracking**: Individual Points For/Against/Net tracking
+- **Session Management**: Complete sessions, reset scores, edit game pairings
 
-## Getting Started
+### 🎮 Multiple Interfaces
+
+#### Management Interface (`/manage`)
+- 5-tab layout: Overview, Total Points, and individual Court tabs
+- Inline score entry with team-based inputs
+- Court standings with promotion/relegation indicators
+- Game pairing editor with 2-game limit validation
+- Session completion and reset buttons
+
+#### TV Display (`/display`)
+- Full-screen optimized view for large displays
+- Auto-refreshing leaderboards
+- Color-coded promotion (green) and relegation (red) zones
+- Clean, distraction-free layout
+
+#### Standings Page (`/standings`)
+- Premier League-style standings tables
+- Visual promotion/relegation zones
+- Championship leader marked with crown 👑
+- Detailed For/Against/Net Points display
+
+#### Rounds History (`/rounds`)
+- View all sessions/rounds
+- Switch between rounds with tabs
+- Complete game history with scores
+- Session-specific standings
+
+#### Setup Page (`/setup`)
+- Drag-and-drop player assignment
+- Visual court allocation
+- Pre-loaded default assignments
+- Validation for player counts (8, 10, or 12)
+
+### 💾 Data Persistence & Backup
+- **PostgreSQL Database**: Production-grade data storage
+- **Automatic Backups**: Create SQL dumps with one click
+- **JSON Export**: Download all tournament data
+- **Safe Redeployment**: Database persists separately from application
+
+### 🎨 User Experience
+- **Universal Navigation**: Bottom bar on mobile, sidebar on desktop
+- **Responsive Design**: Works on phones, tablets, and computers
+- **Beautiful Animations**: Smooth transitions with Framer Motion
+- **Champion Indicators**: Crown icon for Championship court leader
+
+## 🚀 Quick Start
 
 ### Prerequisites
-
 - Node.js 18+
-- PostgreSQL 14+ (already configured)
+- PostgreSQL 14+
+- npm or yarn
 
 ### Installation
 
-The application is already set up! The database is seeded with your 32 players and 3 courts.
-
-### Running the Application
-
-The development server is already running at:
-- **Local**: http://localhost:3001
-- **Network**: http://192.168.10.139:3001 (access from other devices on your network)
-
-If you need to restart it:
+1. **Clone the repository**
 ```bash
-cd padel-tournament
+git clone https://github.com/karimcy/Custom-Americano-Tournament.git
+cd Custom-Americano-Tournament
+```
+
+2. **Install dependencies**
+```bash
+npm install
+```
+
+3. **Set up PostgreSQL database**
+```bash
+# Start PostgreSQL (if not already running)
+brew services start postgresql@14
+
+# Create database
+createdb padel_tournament
+```
+
+4. **Configure environment variables**
+```bash
+# Create .env file
+echo 'DATABASE_URL="postgresql://YOUR_USERNAME@localhost:5432/padel_tournament"' > .env
+```
+
+5. **Run database migrations**
+```bash
+npx prisma migrate deploy
+npx prisma generate
+```
+
+6. **Seed the database**
+```bash
+npx prisma db seed
+```
+
+7. **Start the development server**
+```bash
 npm run dev
 ```
 
-## How to Use
+8. **Open in browser**
+- Management: http://localhost:3000/manage
+- TV Display: http://localhost:3000/display
+- Standings: http://localhost:3000/standings
 
-### 1. Setup Tournament (Do this first on your computer)
+## 📱 Multi-Device Setup
 
-1. Open http://localhost:3001 in your browser
-2. Click "Setup Tournament"
-3. Drag and drop players from "Available Players" to the three courts
-4. Assign 10 players to each court (2 will remain on bench)
-5. Click "Start Tournament"
+### Computer (Score Entry)
+1. Navigate to http://localhost:3000/manage
+2. Enter scores after each game
+3. Complete sessions when round finishes
 
-The system will automatically:
-- Generate 5 games with optimal Americano pairings for each court
-- Ensure everyone plays with different partners
+### TV/Display (Spectator View)
+1. Find your local IP: `ifconfig | grep "inet " | grep -v 127.0.0.1`
+2. Open http://YOUR_IP:3000/display on TV
+3. Display auto-refreshes every 5 seconds
 
-### 2. Display View (Open this on your TV)
+### Mobile Devices (Monitoring)
+- Same network: http://YOUR_IP:3000
+- Access any page via navigation bar
 
-1. Open http://192.168.10.139:3001/display on your TV browser
-2. This shows:
-   - Overall leaderboard (top 10 players)
-   - All three courts with their games
-   - Live scores for each game
-   - Court standings
+## 🎯 Tournament Workflow
 
-The display auto-refreshes every 5 seconds to show latest scores.
+### Before Tournament
+1. **Setup Players** (`/setup`): Drag players to courts
+2. **Verify Assignments**: Check court allocations
+3. **Start Tournament**: Click "Start Tournament"
 
-### 3. Enter Scores (Everyone can do this on their phones)
+### During Session
+1. **View Games** (`/manage`): See court-specific game pairings
+2. **Enter Scores**: Input team scores after each game
+3. **Monitor Progress**: Watch TV display for live updates
 
-1. Open http://192.168.10.139:3001/score on your phone
-2. Select the court and game number
-3. Enter the final score for each player (0-7)
-4. Submit
+### After Session
+1. **Complete Session** (`/manage`): Click "Complete Session & Promote/Relegate"
+2. **Automatic Processing**:
+   - Ranks players by net points
+   - Promotes top 3 (Challenger → Championship, Development → Challenger)
+   - Relegates bottom 3 (Championship → Challenger, Challenger → Development)
+   - Creates next session with new court assignments
+   - Generates new game pairings
 
-Each player enters their individual score from that game (not team scores).
+### Review History
+1. **View Rounds** (`/rounds`): Switch between sessions
+2. **Check Standings**: See historical rankings
+3. **Export Data** (`/history`): Download backups
 
-### 4. Complete Session & Move to Next Round
+## 🏗️ Architecture
 
-After all 5 games on all courts are complete:
-
-1. Go to the Score Entry page
-2. Click "Complete Session & Promote/Relegate"
-3. The system automatically:
-   - Moves top 2 players from each court up to the next level
-   - Moves bottom 2 players down to the lower level
-   - Generates new Americano pairings for the next session
-
-### 5. Repeat for Sessions 2 and 3
-
-The process repeats for all 3 sessions!
-
-## Players in System
-
-The following 32 players are pre-loaded:
-
-Matvey, Karim, Karim A., Alex, Colin Relton, Oliver Thirlwell Georgallis, Iliana Thirlwell Georgallis, Rohan, Natalie, Marios Savva, Dimi, Steve Reynolds, Lisa Groeger, Andrey Sesyuk, Sonya Loshak, Andreas Ch, Nico, Saif, Pandelis, Josh Geddes, Alex Geddes, Jordan Geddes, Dima Zubkov, Stephan, Marianthi, Hannes, Dean, Richard, Sophie Efstathiou, Patrick, Eka, Wayss, Maddy
-
-## Database Management
-
-### Resetting the Tournament
-
-If you need to start fresh:
-
-```bash
-cd padel-tournament
-npm run seed
-```
-
-This will:
-- Clear all games and scores
-- Reset all players to 0 points
-- Create fresh sessions
-
-### Viewing Database
-
-The database connection is at:
-```
-postgresql://karimarnous@localhost:5432/padel_tournament
-```
-
-## Technology Stack
-
-- **Frontend**: Next.js 16, React 19, TypeScript
-- **Styling**: Tailwind CSS with beautiful gradients
-- **Animations**: Framer Motion
+### Tech Stack
+- **Frontend**: Next.js 16 (App Router), React 19, TypeScript
+- **Styling**: Tailwind CSS v4, Framer Motion
+- **Database**: PostgreSQL 14, Prisma ORM
 - **Drag & Drop**: @hello-pangea/dnd
-- **Database**: PostgreSQL + Prisma ORM
-- **Real-time**: Polling (5 second intervals)
 
-## Tips for Tournament Day
+### Key Algorithms
 
-1. **Before Tournament**:
-   - Test display on TV to ensure it's visible
-   - Share the network URL with all players
-   - Make sure everyone can access the score entry page
+#### Americano Pairing
+- **8 players**: 4 games (2 games per player)
+- **10 players**: 5 games (2 games per player)
+- **12 players**: 6 games (2 games per player)
+- Fair rotation ensuring balanced matchups
 
-2. **During Tournament**:
-   - Keep the display page open on TV at all times
-   - Have multiple people ready to enter scores simultaneously
-   - Announce when moving to next session
+#### Ranking System
+1. **Primary**: Net Points (Points For - Points Against)
+2. **Tie-breaker 1**: Total Score
+3. **Tie-breaker 2**: Alphabetical by name
 
-3. **After Each Game**:
-   - Players should enter their scores immediately
-   - Double-check scores before submitting
-   - Scores are final once submitted
+#### Promotion/Relegation
+- Championship (Court 1): No promotion, bottom 3 relegated
+- Challenger (Court 2): Top 3 promoted, bottom 3 relegated
+- Development (Court 3): Top 3 promoted, bottom 3 in relegation zone (visual only)
 
-## Troubleshooting
+## 📂 Project Structure
 
-**If the server stops**:
+```
+padel-tournament/
+├── app/
+│   ├── api/                 # API routes
+│   │   ├── games/          # Score submission
+│   │   ├── sessions/       # Session management
+│   │   ├── players/        # Player data
+│   │   └── courts/         # Court data
+│   ├── components/         # Shared components
+│   │   └── Navigation.tsx  # Universal nav bar
+│   ├── manage/            # Management interface
+│   ├── display/           # TV display
+│   ├── standings/         # Standings page
+│   ├── rounds/            # Session history
+│   ├── setup/             # Player assignment
+│   └── history/           # Backup & export
+├── prisma/
+│   ├── schema.prisma      # Database schema
+│   ├── seed.ts            # Initial data
+│   └── migrations/        # Database migrations
+└── lib/
+    └── americano.ts       # Pairing algorithm
+```
+
+## 🎮 Default Player Setup
+
+### Championship Court (10 players)
+Dimi, Rohan, Marios Savva, Colin Relton, Patrick, Alex Geddes, Josh Geddes, Steve Reynolds, Karim A., Hannes
+
+### Challenger Court (10 players)
+Karim, Andreas Ch, Andrey Sesyuk, Nico, Saif, Alex, Dima Zubkov, Wayss, Jordan Geddes, Pandelis
+
+### Development Court (12 players)
+Richard, Dean, Oliver Thirlwell Georgallis, Natalie, Sonya Loshak, Iliana Thirlwell Georgallis, Matvey, Eka, Sophie Efstathiou, Stephan, Maddy, Marianthi
+
+## 🔧 Configuration
+
+### Database Backup
 ```bash
-cd padel-tournament
+# Manual backup
+./backup-database.sh
+
+# Or via UI
+Navigate to /history → Click "Create PostgreSQL Backup"
+```
+
+### Reset Scores
+```bash
+# Reset all scores to zero
+npx tsx prisma/reset-scores.ts
+```
+
+### Environment Variables
+```env
+DATABASE_URL="postgresql://username@localhost:5432/padel_tournament"
+```
+
+## 📊 Game Scoring
+
+### How Scoring Works
+1. Teams play to 7 points (or tournament-defined limit)
+2. Enter **team total** (e.g., Team 1: 14, Team 2: 6)
+3. Score divided equally among team players
+4. Example: Team 1 scores 14 with 2 players → each gets 7 points
+5. Points For/Against tracking:
+   - Team 1 players: +7 For, +6 Against
+   - Team 2 players: +3 For, +14 Against
+
+### Net Points Calculation
+```
+Net Points = Points For - Points Against
+```
+- Win 14-6: +8 net points (14 - 6)
+- Lose 6-14: -8 net points (6 - 14)
+
+## 🎨 Visual Indicators
+
+- 👑 **Crown**: Championship court leader
+- 🟢 **Green**: Promotion zone (top 3)
+- 🔴 **Red**: Relegation zone (bottom 3)
+- ✓ **Checkmark**: Completed games
+- 🏆 **Gold Medal**: Overall tournament leader
+
+## 📖 Documentation
+
+- **[DEPLOYMENT-GUIDE.md](DEPLOYMENT-GUIDE.md)**: Safe redeployment instructions
+- **[CHANGES-SUMMARY.md](CHANGES-SUMMARY.md)**: Recent feature updates
+- **[FINAL-SUMMARY.md](FINAL-SUMMARY.md)**: Complete feature list
+
+## 🐛 Troubleshooting
+
+### Port Already in Use
+```bash
+# Kill existing Next.js process
+pkill -f "next dev"
+
+# Restart
 npm run dev
 ```
 
-**If you see database errors**:
+### Database Connection Error
 ```bash
-cd padel-tournament
-npx prisma migrate dev
-npm run seed
+# Check PostgreSQL is running
+brew services list
+
+# Restart PostgreSQL
+brew services restart postgresql@14
 ```
 
-**If styles look wrong**:
-Hard refresh the browser (Cmd+Shift+R on Mac, Ctrl+Shift+R on Windows)
+### Reset Everything
+```bash
+# Reset database
+npx prisma migrate reset
 
-## Future Enhancements
+# Reseed
+npx prisma db seed
+```
 
-Potential improvements for future tournaments:
-- WebSocket for true real-time updates (currently polling)
-- Player photo uploads
-- Tournament history and statistics
-- Export results to PDF
-- Custom scoring rules
-- More flexible player counts
+## 🚢 Production Deployment
+
+### Option 1: Vercel (Recommended)
+1. Push to GitHub
+2. Connect Vercel to repository
+3. Set environment variables (PostgreSQL connection)
+4. Deploy
+
+### Option 2: Self-Hosted
+```bash
+# Build for production
+npm run build
+
+# Start production server
+npm start
+
+# Or use PM2
+npm install -g pm2
+pm2 start npm --name "padel-tournament" -- start
+pm2 save
+pm2 startup
+```
+
+## 🤝 Contributing
+
+Contributions welcome! Please:
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Submit a pull request
+
+## 📝 License
+
+MIT License - feel free to use for your tournaments!
+
+## 🙏 Acknowledgments
+
+- Built with Next.js and React
+- Database powered by PostgreSQL
+- Styled with Tailwind CSS
+- Animations by Framer Motion
+
+## 📧 Support
+
+For questions or issues:
+- Open a GitHub issue
+- Check documentation in `/docs` folder
 
 ---
 
-Enjoy your tournament!
+**Ready to start your tournament?** 🎾
+
+```bash
+npm install
+npx prisma migrate deploy
+npx prisma db seed
+npm run dev
+```
+
+Visit http://localhost:3000 and enjoy! 🚀

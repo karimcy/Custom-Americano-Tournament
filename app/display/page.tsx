@@ -96,7 +96,7 @@ export default function DisplayPage() {
         >
           <h1 className="mb-1 text-5xl font-bold text-white">Padel Tournament</h1>
           <p className="text-2xl text-purple-200">
-            Session {currentSession.sessionNumber} of 3 - Americano Format
+            Session {currentSession.sessionNumber} - Americano Format
           </p>
         </motion.div>
 
@@ -168,7 +168,12 @@ export default function DisplayPage() {
                               }`}
                             >
                               <td className="p-1 font-semibold">{idx + 1}</td>
-                              <td className="p-1 truncate">{assignment.player.name}</td>
+                              <td className="p-1 truncate">
+                                {assignment.player.name}
+                                {idx === 0 && courtSession.court.order === 1 && (
+                                  <span className="ml-1 text-yellow-300">👑</span>
+                                )}
+                              </td>
                               <td className="p-1 text-center">{assignment.player.pointsFor}</td>
                               <td className="p-1 text-center">{assignment.player.pointsAgainst}</td>
                               <td className="p-1 text-center font-bold">{assignment.netPoints}</td>

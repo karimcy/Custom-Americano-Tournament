@@ -115,7 +115,7 @@ async function main() {
   // Create sessions
   console.log('Creating sessions...');
   const sessions = [];
-  for (let i = 1; i <= 3; i++) {
+  for (let i = 1; i <= 4; i++) {
     sessions.push(
       await prisma.session.create({
         data: {

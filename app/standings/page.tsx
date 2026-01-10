@@ -83,7 +83,7 @@ export default function StandingsPage() {
               Court Standings
             </h1>
             <p className="text-xl text-gray-700">
-              Session {currentSession.sessionNumber} of 3
+              Session {currentSession.sessionNumber}
             </p>
           </div>
           <Link href="/">
@@ -212,8 +212,11 @@ export default function StandingsPage() {
                             {idx + 1}
                           </div>
                           <div className="flex-1">
-                            <div className={`text-lg font-bold ${textColor}`}>
+                            <div className={`text-lg font-bold ${textColor} flex items-center gap-2`}>
                               {assignment.player.name}
+                              {idx === 0 && courtSession.court.order === 1 && (
+                                <span className="text-yellow-500 text-xl" title="Championship Leader">👑</span>
+                              )}
                             </div>
                             <div className="text-sm text-gray-600 flex gap-3">
                               <span>For: {assignment.player.pointsFor}</span>

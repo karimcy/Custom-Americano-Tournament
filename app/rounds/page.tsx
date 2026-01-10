@@ -43,6 +43,7 @@ export default function RoundsPage() {
   const [sessions, setSessions] = useState<Session[]>([]);
   const [selectedSessionId, setSelectedSessionId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [creating, setCreating] = useState(false);
 
   useEffect(() => {
     fetchSessions();
@@ -62,6 +63,31 @@ export default function RoundsPage() {
     } catch (error) {
       console.error('Error fetching sessions:', error);
       setLoading(false);
+    }
+  };
+
+  const addNewSession = async () => {
+    if (!confirm('Create a new session? This will copy the current court assignments.')) {
+      return;
+    }
+
+    setCreating(true);
+    try {
+      const response = await fetch('/api/sessions/create', {
+        method: 'POST',
+      });
+
+      if (response.ok) {
+        alert('✅ New session created successfully!');
+        await fetchSessions();
+      } else {
+        alert('❌ Failed to create new session');
+      }
+    } catch (error) {
+      console.error('Error creating session:', error);
+      alert('❌ Failed to create new session');
+    } finally {
+      setCreating(false);
     }
   };
 
@@ -95,13 +121,22 @@ export default function RoundsPage() {
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 p-4 pb-20 md:p-8 md:pl-24 md:pb-8">
         <div className="mx-auto max-w-7xl">
           {/* Header */}
-          <div className="mb-6">
-            <h1 className="mb-2 text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-              Session History
-            </h1>
-            <p className="text-xl text-gray-700">
-              View scores and standings from all sessions
-            </p>
+          <div className="mb-6 flex items-start justify-between">
+            <div>
+              <h1 className="mb-2 text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                Session History
+              </h1>
+              <p className="text-xl text-gray-700">
+                View scores and standings from all sessions
+              </p>
+            </div>
+            <button
+              onClick={addNewSession}
+              disabled={creating}
+              className="rounded-xl bg-gradient-to-r from-green-500 to-teal-600 px-6 py-3 text-lg font-semibold text-white shadow-lg hover:shadow-xl disabled:opacity-50"
+            >
+              {creating ? '⏳ Creating...' : '➕ Add Session'}
+            </button>
           </div>
 
           {/* Session Tabs */}
@@ -203,7 +238,14 @@ export default function RoundsPage() {
                                     {idx + 1}
                                   </div>
                                 </td>
-                                <td className="p-3 font-semibold text-gray-800">{assignment.player.name}</td>
+                                <td className="p-3 font-semibold text-gray-800">
+                                  <div className="flex items-center gap-2">
+                                    {assignment.player.name}
+                                    {idx === 0 && courtSession.court.order === 1 && (
+                                      <span className="text-yellow-500 text-lg" title="Championship Leader">👑</span>
+                                    )}
+                                  </div>
+                                </td>
                                 <td className="p-3 text-center text-gray-700">{assignment.player.pointsFor}</td>
                                 <td className="p-3 text-center text-gray-700">{assignment.player.pointsAgainst}</td>
                                 <td className="p-3 text-center font-bold text-purple-600">

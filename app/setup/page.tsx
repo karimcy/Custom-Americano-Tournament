@@ -28,6 +28,8 @@ export default function SetupPage() {
   const [assignments, setAssignments] = useState<CourtAssignment>({ unassigned: [] });
   const [loading, setLoading] = useState(true);
   const [sessionId, setSessionId] = useState<string>('');
+  const [newPlayerName, setNewPlayerName] = useState('');
+  const [addingPlayer, setAddingPlayer] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -138,6 +140,47 @@ export default function SetupPage() {
     }
   };
 
+  const addNewPlayer = async () => {
+    if (!newPlayerName.trim()) {
+      alert('Please enter a player name');
+      return;
+    }
+
+    setAddingPlayer(true);
+    try {
+      const response = await fetch('/api/players/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: newPlayerName.trim() }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        const newPlayer = data.player;
+
+        // Add to players list
+        setPlayers([...players, newPlayer]);
+
+        // Add to unassigned
+        setAssignments({
+          ...assignments,
+          unassigned: [...(assignments.unassigned || []), newPlayer],
+        });
+
+        setNewPlayerName('');
+        alert(`✅ Player "${newPlayer.name}" added successfully!`);
+      } else {
+        const data = await response.json();
+        alert(`❌ ${data.error || 'Failed to add player'}`);
+      }
+    } catch (error) {
+      console.error('Error adding player:', error);
+      alert('❌ Failed to add player');
+    } finally {
+      setAddingPlayer(false);
+    }
+  };
+
   const startTournament = async () => {
     try {
       // Prepare assignments for API
@@ -224,6 +267,30 @@ export default function SetupPage() {
                   <h2 className="mb-4 text-xl font-bold text-gray-800">
                     Available Players ({assignments.unassigned.length})
                   </h2>
+
+                  {/* Add New Player */}
+                  <div className="mb-4 rounded-lg bg-gray-50 p-4">
+                    <label className="mb-2 block text-sm font-semibold text-gray-700">
+                      Add New Player
+                    </label>
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={newPlayerName}
+                        onChange={(e) => setNewPlayerName(e.target.value)}
+                        onKeyDown={(e) => e.key === 'Enter' && addNewPlayer()}
+                        placeholder="Enter player name"
+                        className="flex-1 rounded-lg border-2 border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none"
+                      />
+                      <button
+                        onClick={addNewPlayer}
+                        disabled={addingPlayer || !newPlayerName.trim()}
+                        className="rounded-lg bg-green-500 px-4 py-2 font-semibold text-white hover:bg-green-600 disabled:opacity-50"
+                      >
+                        {addingPlayer ? '...' : '➕ Add'}
+                      </button>
+                    </div>
+                  </div>
                   <div className="space-y-2">
                     {assignments.unassigned.map((player, index) => (
                       <Draggable key={player.id} draggableId={player.id} index={index}>
