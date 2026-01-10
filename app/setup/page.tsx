@@ -48,20 +48,55 @@ export default function SetupPage() {
       setPlayers(playersData);
       setCourts(courtsData);
 
-      // Find the first pending session
-      const firstSession = sessionsData.find((s: any) => s.status === 'pending');
-      if (firstSession) {
-        setSessionId(firstSession.id);
+      // Find the active or first pending session
+      const activeSession = sessionsData.find((s: any) => s.status === 'active');
+      const pendingSession = sessionsData.find((s: any) => s.status === 'pending');
+      const currentSession = activeSession || pendingSession;
+
+      if (currentSession) {
+        setSessionId(currentSession.id);
+
+        // Load existing court assignments
+        const initialAssignments: CourtAssignment = {
+          unassigned: [],
+        };
+
+        courtsData.forEach((court: Court) => {
+          initialAssignments[court.id] = [];
+        });
+
+        // Map assigned players to their courts
+        const assignedPlayerIds = new Set<string>();
+
+        if (currentSession.courtSessions) {
+          currentSession.courtSessions.forEach((cs: any) => {
+            if (cs.assignments) {
+              const courtPlayers = cs.assignments.map((a: any) => {
+                assignedPlayerIds.add(a.player.id);
+                return a.player;
+              });
+              initialAssignments[cs.court.id] = courtPlayers;
+            }
+          });
+        }
+
+        // Remaining unassigned players
+        initialAssignments.unassigned = playersData.filter(
+          (p: Player) => !assignedPlayerIds.has(p.id)
+        );
+
+        setAssignments(initialAssignments);
+      } else {
+        // No session found, start with all unassigned
+        const initialAssignments: CourtAssignment = {
+          unassigned: playersData,
+        };
+        courtsData.forEach((court: Court) => {
+          initialAssignments[court.id] = [];
+        });
+        setAssignments(initialAssignments);
       }
 
-      // Initialize assignments with unassigned players
-      const initialAssignments: CourtAssignment = {
-        unassigned: playersData,
-      };
-      courtsData.forEach((court: Court) => {
-        initialAssignments[court.id] = [];
-      });
-      setAssignments(initialAssignments);
       setLoading(false);
     } catch (error) {
       console.error('Error fetching data:', error);
@@ -127,6 +162,30 @@ export default function SetupPage() {
       console.error('Error starting tournament:', error);
       alert('Failed to start tournament');
     }
+  };
+
+  const isValidSetup = () => {
+    for (const court of courts) {
+      const playerCount = assignments[court.id]?.length || 0;
+      if (playerCount !== 8 && playerCount !== 10) {
+        return false;
+      }
+    }
+    return true;
+  };
+
+  const getValidationMessage = () => {
+    const invalidCourts = courts.filter((court) => {
+      const count = assignments[court.id]?.length || 0;
+      return count !== 8 && count !== 10;
+    });
+
+    if (invalidCourts.length === 0) return '';
+
+    return invalidCourts.map((court) => {
+      const count = assignments[court.id]?.length || 0;
+      return `${court.name}: ${count} players (needs 8 or 10)`;
+    }).join(', ');
   };
 
   if (loading) {
@@ -248,14 +307,14 @@ export default function SetupPage() {
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={startTournament}
-            disabled={assignments.unassigned.length > 2}
+            disabled={!isValidSetup()}
             className="rounded-xl bg-gradient-to-r from-blue-500 to-purple-600 px-12 py-4 text-xl font-semibold text-white shadow-lg transition-all hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-50"
           >
             Start Tournament
           </motion.button>
-          {assignments.unassigned.length > 2 && (
+          {!isValidSetup() && (
             <p className="mt-4 text-red-600">
-              You must assign players to courts (max 2 can remain on bench)
+              Each court must have exactly 8 or 10 players. {getValidationMessage()}
             </p>
           )}
         </div>

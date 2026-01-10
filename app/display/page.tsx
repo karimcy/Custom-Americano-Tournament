@@ -42,7 +42,7 @@ export default function DisplayPage() {
 
   useEffect(() => {
     fetchSessions();
-    const interval = setInterval(fetchSessions, 5000); // Poll every 5 seconds
+    const interval = setInterval(fetchSessions, 5000);
     return () => clearInterval(interval);
   }, []);
 
@@ -52,7 +52,6 @@ export default function DisplayPage() {
       const data = await response.json();
       setSessions(data);
 
-      // Find active session or latest
       const active = data.find((s: Session) => s.status === 'active');
       setCurrentSession(active || data[data.length - 1]);
       setLoading(false);
@@ -84,78 +83,46 @@ export default function DisplayPage() {
     );
   }
 
-  // Get all players sorted by score
-  const allPlayers: Player[] = [];
-  currentSession.courtSessions.forEach((cs) => {
-    cs.assignments.forEach((a) => {
-      if (!allPlayers.find((p) => p.id === a.player.id)) {
-        allPlayers.push(a.player);
-      }
-    });
-  });
-  allPlayers.sort((a, b) => b.totalScore - a.totalScore);
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-900 via-purple-900 to-pink-900 p-8">
+    <div className="min-h-screen bg-gradient-to-br from-blue-900 via-purple-900 to-pink-900 p-6">
       <div className="mx-auto max-w-7xl">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mb-8 text-center"
+          className="mb-4 text-center"
         >
-          <h1 className="mb-2 text-6xl font-bold text-white">Padel Tournament</h1>
-          <p className="text-3xl text-purple-200">
-            Session {currentSession.sessionNumber} - Americano Format
+          <h1 className="mb-1 text-5xl font-bold text-white">Padel Tournament</h1>
+          <p className="text-2xl text-purple-200">
+            Session {currentSession.sessionNumber} of 3 - Americano Format
           </p>
         </motion.div>
 
-        {/* Leaderboard */}
+        {/* Scoring Explainer */}
         <motion.div
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
           transition={{ delay: 0.2 }}
-          className="mb-8 rounded-2xl bg-white/10 backdrop-blur-lg p-6"
+          className="mb-4 rounded-xl bg-white/10 backdrop-blur-lg p-3 text-center"
         >
-          <h2 className="mb-4 text-3xl font-bold text-white">Leaderboard</h2>
-          <div className="grid grid-cols-2 gap-4 md:grid-cols-4 lg:grid-cols-5">
-            {allPlayers.slice(0, 10).map((player, index) => (
-              <motion.div
-                key={player.id}
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.3 + index * 0.05 }}
-                className={`rounded-xl p-4 text-center ${
-                  index === 0
-                    ? 'bg-gradient-to-br from-yellow-400 to-orange-500'
-                    : index === 1
-                    ? 'bg-gradient-to-br from-gray-300 to-gray-400'
-                    : index === 2
-                    ? 'bg-gradient-to-br from-orange-400 to-orange-600'
-                    : 'bg-white/20'
-                }`}
-              >
-                <div className="text-2xl font-bold">{index + 1}</div>
-                <div className="text-lg font-semibold">{player.name}</div>
-                <div className="text-3xl font-bold">{player.totalScore}</div>
-              </motion.div>
-            ))}
-          </div>
+          <p className="text-lg font-semibold text-white">
+            📊 Each player plays 2 games to 7 points | Your individual score adds to your total | Win 7-3 = You get 7 points
+          </p>
         </motion.div>
 
         {/* Courts */}
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
           <AnimatePresence>
             {currentSession.courtSessions.map((courtSession, index) => (
               <motion.div
                 key={courtSession.court.name}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.4 + index * 0.1 }}
-                className="rounded-2xl bg-white/10 backdrop-blur-lg p-6"
+                transition={{ delay: 0.3 + index * 0.1 }}
+                className="rounded-2xl bg-white/10 backdrop-blur-lg p-4"
               >
                 <h2
-                  className={`mb-6 text-3xl font-bold ${
+                  className={`mb-3 text-center text-2xl font-bold ${
                     courtSession.court.order === 1
                       ? 'text-yellow-300'
                       : courtSession.court.order === 2
@@ -166,67 +133,71 @@ export default function DisplayPage() {
                   {courtSession.court.name}
                 </h2>
 
-                <div className="space-y-4">
-                  {courtSession.games.map((game) => {
-                    const team1Players = game.gamePlayers.filter((gp) => gp.team === 1);
-                    const team2Players = game.gamePlayers.filter((gp) => gp.team === 2);
-                    const team1Score = team1Players.reduce((sum, gp) => sum + gp.score, 0);
-                    const team2Score = team2Players.reduce((sum, gp) => sum + gp.score, 0);
-
-                    return (
-                      <motion.div
-                        key={game.id}
-                        whileHover={{ scale: 1.02 }}
-                        className={`rounded-xl p-4 ${
-                          game.status === 'completed'
-                            ? 'bg-green-500/30'
-                            : game.status === 'active'
-                            ? 'bg-blue-500/30'
-                            : 'bg-gray-500/30'
-                        }`}
-                      >
-                        <div className="mb-2 text-sm font-semibold text-white/70">
-                          Game {game.gameNumber}
-                        </div>
-                        <div className="space-y-2">
-                          <div className="flex items-center justify-between">
-                            <div className="text-white">
-                              {team1Players.map((gp) => gp.player.name).join(' & ')}
-                            </div>
-                            <div className="text-2xl font-bold text-white">{team1Score}</div>
-                          </div>
-                          <div className="border-t border-white/30"></div>
-                          <div className="flex items-center justify-between">
-                            <div className="text-white">
-                              {team2Players.map((gp) => gp.player.name).join(' & ')}
-                            </div>
-                            <div className="text-2xl font-bold text-white">{team2Score}</div>
-                          </div>
-                        </div>
-                      </motion.div>
-                    );
-                  })}
-                </div>
-
-                {/* Court Standings */}
-                <div className="mt-6">
-                  <h3 className="mb-3 text-xl font-bold text-white">Court Standings</h3>
-                  <div className="space-y-2">
+                {/* Court Standings FIRST */}
+                <div className="mb-4">
+                  <h3 className="mb-2 text-lg font-bold text-white">Standings</h3>
+                  <div className="space-y-1">
                     {courtSession.assignments
                       .sort((a, b) => b.player.totalScore - a.player.totalScore)
                       .map((assignment, idx) => (
                         <div
                           key={assignment.player.id}
-                          className="flex items-center justify-between rounded-lg bg-white/10 p-2"
+                          className={`flex items-center justify-between rounded-lg p-2 ${
+                            idx < 2 && courtSession.court.order > 1
+                              ? 'bg-green-500/30'
+                              : idx >= courtSession.assignments.length - 2 && courtSession.court.order < 3
+                              ? 'bg-red-500/30'
+                              : 'bg-white/10'
+                          }`}
                         >
-                          <span className="font-semibold text-white">
+                          <span className="font-semibold text-white text-sm">
                             {idx + 1}. {assignment.player.name}
                           </span>
-                          <span className="text-xl font-bold text-white">
+                          <span className="text-lg font-bold text-white">
                             {assignment.player.totalScore}
                           </span>
                         </div>
                       ))}
+                  </div>
+                </div>
+
+                {/* Games SECOND */}
+                <div>
+                  <h3 className="mb-2 text-lg font-bold text-white">Games</h3>
+                  <div className="space-y-2">
+                    {courtSession.games.map((game) => {
+                      const team1Players = game.gamePlayers.filter((gp) => gp.team === 1);
+                      const team2Players = game.gamePlayers.filter((gp) => gp.team === 2);
+                      const team1Score = team1Players.reduce((sum, gp) => sum + gp.score, 0);
+                      const team2Score = team2Players.reduce((sum, gp) => sum + gp.score, 0);
+
+                      return (
+                        <div
+                          key={game.id}
+                          className={`rounded-lg p-2 text-sm ${
+                            game.status === 'completed'
+                              ? 'bg-green-500/30'
+                              : 'bg-gray-500/30'
+                          }`}
+                        >
+                          <div className="mb-1 text-xs font-semibold text-white/70">
+                            Game {game.gameNumber}
+                          </div>
+                          <div className="flex items-center justify-between text-white">
+                            <div className="truncate">
+                              {team1Players.map((gp) => gp.player.name.split(' ')[0]).join(' & ')}
+                            </div>
+                            <div className="text-xl font-bold">{team1Score}</div>
+                          </div>
+                          <div className="flex items-center justify-between text-white">
+                            <div className="truncate">
+                              {team2Players.map((gp) => gp.player.name.split(' ')[0]).join(' & ')}
+                            </div>
+                            <div className="text-xl font-bold">{team2Score}</div>
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               </motion.div>
@@ -237,3 +208,4 @@ export default function DisplayPage() {
     </div>
   );
 }
+

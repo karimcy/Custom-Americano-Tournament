@@ -184,13 +184,29 @@ export default function ManagePage() {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 p-4 md:p-8">
       <div className="mx-auto max-w-7xl">
         {/* Header */}
-        <div className="mb-6">
-          <h1 className="mb-2 text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-            Padel Tournament Manager
-          </h1>
-          <p className="text-xl text-gray-700">
-            Session {currentSession.sessionNumber} of 3 - Americano Format
-          </p>
+        <div className="mb-6 flex items-start justify-between">
+          <div>
+            <h1 className="mb-2 text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              Padel Tournament Manager
+            </h1>
+            <p className="text-xl text-gray-700">
+              Session {currentSession.sessionNumber} of 3 - Americano Format
+            </p>
+          </div>
+          <div className="flex gap-3">
+            <a
+              href="/standings"
+              className="rounded-xl bg-gradient-to-r from-green-500 to-teal-600 px-6 py-3 text-lg font-semibold text-white shadow-lg hover:shadow-xl"
+            >
+              🏆 Standings
+            </a>
+            <a
+              href="/"
+              className="rounded-xl bg-white px-6 py-3 text-lg font-semibold text-gray-700 shadow-lg hover:shadow-xl"
+            >
+              ← Home
+            </a>
+          </div>
         </div>
 
         {/* Tabs */}

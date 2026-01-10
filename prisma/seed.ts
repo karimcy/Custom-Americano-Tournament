@@ -55,8 +55,8 @@ const COURT_ASSIGNMENTS = {
     'Alex Geddes',
     'Josh Geddes',
     'Steve Reynolds',
-    'Iliana Thirlwell Georgallis',
     'Hannes',
+    'Dean',
   ],
   Challenger: [
     'Karim',
@@ -65,19 +65,19 @@ const COURT_ASSIGNMENTS = {
     'Nico',
     'Saif',
     'Dima Zubkov',
+    'Matvey',
     'Wayss',
     'Jordan Geddes',
     'Maddy',
-    'Pandelis',
   ],
   Development: [
     'Richard',
-    'Dean',
     'Natalie',
     'Lisa Groeger',
     'Sonya Loshak',
-    'Matvey',
+    'Karim A.',
     'Eka',
+    'Iliana Thirlwell Georgallis',
     'Sophie Efstathiou',
     'Stephan',
     'Marianthi',
@@ -154,17 +154,44 @@ async function main() {
     console.log(`Generating games for ${courtName}...`);
     const courtPlayers = playerNames.map((name) => players[name]).filter(Boolean);
 
-    if (courtPlayers.length === 10) {
-      // Use the Americano pairing algorithm
-      const pairings = [
-        { team1: [0, 1], team2: [2, 3] },
-        { team1: [0, 2], team2: [4, 5] },
-        { team1: [0, 3], team2: [6, 7] },
-        { team1: [0, 4], team2: [8, 9] },
-        { team1: [1, 2], team2: [5, 6] },
-      ];
+    if (courtPlayers.length === 10 || courtPlayers.length === 8) {
+      // Balanced Americano - each player plays exactly 2 games
+      let pairings;
+      let numPlayers = courtPlayers.length;
 
-      for (let i = 0; i < 5; i++) {
+      if (courtPlayers.length === 10) {
+        // 10 players: 5 games × 4 players = 20 player-slots / 10 players = 2 games each
+        pairings = [
+          { team1: [0, 1], team2: [2, 3] },  // Game 1: Players 0,1,2,3 play
+          { team1: [4, 5], team2: [6, 7] },  // Game 2: Players 4,5,6,7 play
+          { team1: [8, 9], team2: [0, 2] },  // Game 3: Players 8,9,0,2 play (0,2 2nd game)
+          { team1: [1, 3], team2: [4, 6] },  // Game 4: Players 1,3,4,6 play (1,3,4,6 2nd game)
+          { team1: [5, 7], team2: [8, 9] },  // Game 5: Players 5,7,8,9 play (5,7,8,9 2nd game)
+        ];
+      } else {
+        // 8 players: 4 games × 4 players = 16 player-slots / 8 players = 2 games each
+        pairings = [
+          { team1: [0, 1], team2: [2, 3] },  // Game 1: Players 0,1,2,3 play
+          { team1: [4, 5], team2: [6, 7] },  // Game 2: Players 4,5,6,7 play
+          { team1: [0, 2], team2: [4, 6] },  // Game 3: Players 0,2,4,6 play (2nd game)
+          { team1: [1, 3], team2: [5, 7] },  // Game 4: Players 1,3,5,7 play (2nd game)
+        ];
+      }
+
+      // Verify distribution
+      const gameCount = new Array(numPlayers).fill(0);
+      pairings.forEach((p) => {
+        gameCount[p.team1[0]]++;
+        gameCount[p.team1[1]]++;
+        gameCount[p.team2[0]]++;
+        gameCount[p.team2[1]]++;
+      });
+      console.log(
+        `${courtName} (${numPlayers} players) game distribution:`,
+        gameCount.map((c, i) => `${playerNames[i]}: ${c} games`).join(', ')
+      );
+
+      for (let i = 0; i < pairings.length; i++) {
         const game = await prisma.game.create({
           data: {
             courtSessionId: courtSession.id,
