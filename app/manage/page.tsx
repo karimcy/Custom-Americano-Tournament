@@ -46,6 +46,7 @@ export default function ManagePage() {
   const [gameScores, setGameScores] = useState<{ [gameId: string]: { team1: number; team2: number } }>({});
   const [loading, setLoading] = useState(true);
   const [editingCourtSessionId, setEditingCourtSessionId] = useState<string | null>(null);
+  const [submittingGameId, setSubmittingGameId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchSessions();
@@ -81,10 +82,12 @@ export default function ManagePage() {
   const submitGameScore = async (game: Game) => {
     const scores = gameScores[game.id];
 
-    if (!scores || scores.team1 === undefined || scores.team2 === undefined) {
-      alert('Please enter scores for both teams');
+    if (!scores || scores.team1 === undefined || scores.team2 === undefined || scores.team1 === '' || scores.team2 === '') {
+      alert('⚠️ Please enter scores for both teams');
       return;
     }
+
+    setSubmittingGameId(game.id);
 
     try {
       const response = await fetch(`/api/games/${game.id}/score`, {
@@ -94,18 +97,20 @@ export default function ManagePage() {
       });
 
       if (response.ok) {
-        alert('Scores submitted!');
         // Clear this game's scores from state
         const newScores = { ...gameScores };
         delete newScores[game.id];
         setGameScores(newScores);
-        fetchSessions();
+        // Immediately fetch updated data
+        await fetchSessions();
       } else {
-        alert('Failed to submit scores');
+        alert('❌ Failed to submit scores');
       }
     } catch (error) {
       console.error('Error submitting scores:', error);
-      alert('Failed to submit scores');
+      alert('❌ Failed to submit scores');
+    } finally {
+      setSubmittingGameId(null);
     }
   };
 
@@ -512,6 +517,11 @@ export default function ManagePage() {
                                 min="0"
                                 value={currentScores.team1 ?? ''}
                                 onChange={(e) => handleTeamScoreChange(game.id, 'team1', e.target.value)}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter' && currentScores.team1 !== undefined && currentScores.team2 !== undefined) {
+                                    submitGameScore(game);
+                                  }
+                                }}
                                 className="w-full rounded-lg border-2 border-blue-300 p-4 text-center text-3xl font-bold focus:border-blue-500 focus:outline-none"
                                 placeholder="Enter score"
                               />
@@ -539,6 +549,11 @@ export default function ManagePage() {
                                 min="0"
                                 value={currentScores.team2 ?? ''}
                                 onChange={(e) => handleTeamScoreChange(game.id, 'team2', e.target.value)}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter' && currentScores.team1 !== undefined && currentScores.team2 !== undefined) {
+                                    submitGameScore(game);
+                                  }
+                                }}
                                 className="w-full rounded-lg border-2 border-purple-300 p-4 text-center text-3xl font-bold focus:border-purple-500 focus:outline-none"
                                 placeholder="Enter score"
                               />
@@ -550,9 +565,22 @@ export default function ManagePage() {
                       {game.status !== 'completed' && (
                         <button
                           onClick={() => submitGameScore(game)}
-                          className="mt-4 w-full rounded-xl bg-gradient-to-r from-blue-500 to-purple-600 py-3 text-lg font-semibold text-white shadow-lg hover:shadow-xl"
+                          disabled={submittingGameId === game.id || !currentScores.team1 || !currentScores.team2}
+                          className={`mt-4 w-full rounded-xl py-3 text-lg font-semibold text-white shadow-lg transition-all ${
+                            submittingGameId === game.id
+                              ? 'bg-gray-400 cursor-wait'
+                              : currentScores.team1 && currentScores.team2
+                              ? 'bg-gradient-to-r from-green-500 to-teal-600 hover:shadow-xl hover:scale-105'
+                              : 'bg-gradient-to-r from-blue-500 to-purple-600 hover:shadow-xl opacity-50 cursor-not-allowed'
+                          }`}
                         >
-                          Submit Game {game.gameNumber} Scores
+                          {submittingGameId === game.id ? (
+                            <>⏳ Saving...</>
+                          ) : currentScores.team1 && currentScores.team2 ? (
+                            <>✓ Submit Game {game.gameNumber} Scores</>
+                          ) : (
+                            <>Submit Game {game.gameNumber} Scores</>
+                          )}
                         </button>
                       )}
                     </div>
