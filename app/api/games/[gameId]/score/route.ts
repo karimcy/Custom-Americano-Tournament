@@ -19,9 +19,9 @@ export async function POST(
     const team1Players = gamePlayers.filter((gp) => gp.team === 1);
     const team2Players = gamePlayers.filter((gp) => gp.team === 2);
 
-    // Divide team score equally among players
-    const team1ScorePerPlayer = team1Score / team1Players.length;
-    const team2ScorePerPlayer = team2Score / team2Players.length;
+    // Each player on the team gets the FULL team score (not divided)
+    // If you win 7-5, you get 7 for and 5 against (net +2)
+    // If you lose 5-7, you get 5 for and 7 against (net -2)
 
     // Update scores for team 1 players
     for (const gp of team1Players) {
@@ -31,7 +31,7 @@ export async function POST(
           playerId: gp.playerId,
         },
         data: {
-          score: team1ScorePerPlayer,
+          score: team1Score, // Full team score, not divided
         },
       });
 
@@ -43,8 +43,8 @@ export async function POST(
         await prisma.player.update({
           where: { id: gp.playerId },
           data: {
-            totalScore: player.totalScore + team1ScorePerPlayer,
-            pointsFor: player.pointsFor + team1ScorePerPlayer,
+            totalScore: player.totalScore + team1Score,
+            pointsFor: player.pointsFor + team1Score,
             pointsAgainst: player.pointsAgainst + team2Score,
           },
         });
@@ -59,7 +59,7 @@ export async function POST(
           playerId: gp.playerId,
         },
         data: {
-          score: team2ScorePerPlayer,
+          score: team2Score, // Full team score, not divided
         },
       });
 
@@ -71,8 +71,8 @@ export async function POST(
         await prisma.player.update({
           where: { id: gp.playerId },
           data: {
-            totalScore: player.totalScore + team2ScorePerPlayer,
-            pointsFor: player.pointsFor + team2ScorePerPlayer,
+            totalScore: player.totalScore + team2Score,
+            pointsFor: player.pointsFor + team2Score,
             pointsAgainst: player.pointsAgainst + team1Score,
           },
         });

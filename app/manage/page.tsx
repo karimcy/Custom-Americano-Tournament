@@ -467,7 +467,7 @@ export default function ManagePage() {
                 {courtSession.games.map((game) => {
                   const team1Players = game.gamePlayers.filter((gp) => gp.team === 1);
                   const team2Players = game.gamePlayers.filter((gp) => gp.team === 2);
-                  const currentScores = gameScores[game.id] || { team1: 0, team2: 0 };
+                  const currentScores = gameScores[game.id] || {};
                   const team1Total = team1Players.reduce((sum, gp) => sum + gp.score, 0);
                   const team2Total = team2Players.reduce((sum, gp) => sum + gp.score, 0);
 
@@ -510,10 +510,10 @@ export default function ManagePage() {
                               <input
                                 type="number"
                                 min="0"
-                                value={currentScores.team1 ?? 0}
+                                value={currentScores.team1 ?? ''}
                                 onChange={(e) => handleTeamScoreChange(game.id, 'team1', e.target.value)}
                                 className="w-full rounded-lg border-2 border-blue-300 p-4 text-center text-3xl font-bold focus:border-blue-500 focus:outline-none"
-                                placeholder="0"
+                                placeholder="Enter score"
                               />
                             </div>
                           )}
@@ -537,10 +537,10 @@ export default function ManagePage() {
                               <input
                                 type="number"
                                 min="0"
-                                value={currentScores.team2 ?? 0}
+                                value={currentScores.team2 ?? ''}
                                 onChange={(e) => handleTeamScoreChange(game.id, 'team2', e.target.value)}
                                 className="w-full rounded-lg border-2 border-purple-300 p-4 text-center text-3xl font-bold focus:border-purple-500 focus:outline-none"
-                                placeholder="0"
+                                placeholder="Enter score"
                               />
                             </div>
                           )}
